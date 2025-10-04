@@ -72,13 +72,33 @@ const UsersPage = () => {
       return;
     }
 
+    // Warn if employee has no manager
+    if (formData.role === 'employee' && !formData.managerId) {
+      if (!confirm('Warning: This employee has no manager assigned. Expenses will not be routed for approval. Continue?')) {
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
+      // Convert camelCase to snake_case for backend
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        manager_id: formData.managerId || null,
+        is_manager_approver: formData.isManagerApprover || false,
+      };
+
+      if (!editingUser && formData.password) {
+        payload.password = formData.password;
+      }
+
       if (editingUser) {
-        await api.patch(`/users/${editingUser.id}`, formData);
+        await api.patch(`/users/${editingUser.id}`, payload);
         toast.success('User updated successfully');
       } else {
-        await api.post('/users', formData);
+        await api.post('/users', payload);
         toast.success('User created successfully');
       }
       setDialogOpen(false);

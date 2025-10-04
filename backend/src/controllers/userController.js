@@ -41,7 +41,7 @@ export const getUserById = async (req, res) => {
 
 // Create user (Admin only)
 export const createUser = async (req, res) => {
-  const { email, name, role, manager_id, is_manager_approver } = req.body;
+  const { email, password, name, role, manager_id, is_manager_approver } = req.body;
 
   // Check if email already exists
   const existingUser = await userModel.findUserByEmail(email);
@@ -49,22 +49,22 @@ export const createUser = async (req, res) => {
     throw new AppError('Email already registered', 400);
   }
 
-  // Generate temporary password
-  const tempPassword = crypto.randomBytes(8).toString('hex');
+  // Use provided password or generate temporary one
+  const userPassword = password || crypto.randomBytes(8).toString('hex');
 
   // Create user
   const user = await userModel.createUser({
     company_id: req.user.company_id,
     email,
-    password: tempPassword,
+    password: userPassword,
     name,
     role,
     manager_id: manager_id || null,
     is_manager_approver: is_manager_approver || false
   });
 
-  // Send welcome email with temporary password
-  sendWelcomeEmail(user, tempPassword).catch(err => 
+  // Send welcome email with password
+  sendWelcomeEmail(user, userPassword).catch(err => 
     logger.error('Failed to send welcome email:', err)
   );
 
