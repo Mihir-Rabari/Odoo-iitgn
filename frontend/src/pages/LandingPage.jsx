@@ -50,22 +50,14 @@ const LandingPage = () => {
 
         {/* Hero Image */}
         <div className="mt-16 relative">
-          <div className="bg-gradient-to-r from-purple-600 to-purple-800 rounded-2xl shadow-2xl p-8 max-w-5xl mx-auto">
-            <div className="bg-white rounded-lg p-6 shadow-xl">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
-                <div className="h-3 w-3 rounded-full bg-green-500"></div>
-              </div>
-              <div className="space-y-4">
-                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-24 bg-gradient-to-r from-purple-100 to-purple-50 rounded"></div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="h-16 bg-gray-100 rounded"></div>
-                  <div className="h-16 bg-gray-100 rounded"></div>
-                  <div className="h-16 bg-gray-100 rounded"></div>
-                </div>
-              </div>
+          <div className="bg-gradient-to-r from-purple-600 to-purple-800 rounded-2xl shadow-2xl p-2 md:p-4 max-w-6xl mx-auto">
+            <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+              <img
+                src="/images/expe-dashboard.png"
+                alt="Expe dashboard preview"
+                className="w-full h-auto"
+                loading="eager"
+              />
             </div>
           </div>
         </div>

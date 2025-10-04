@@ -16,6 +16,17 @@ services:
       timeout: 5s
       retries: 5
 
+  # Postgres Prometheus exporter
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: expe-postgres-exporter
+    depends_on:
+      - postgres
+    environment:
+      - DATA_SOURCE_NAME=postgresql://expe_user:expe_password@postgres:5432/expe_db?sslmode=disable
+    ports:
+      - "9187:9187"
+
   redis:
     image: redis:7-alpine
     container_name: expe-redis
@@ -28,6 +39,17 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+
+  # Redis Prometheus exporter
+  redis_exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: expe-redis-exporter
+    depends_on:
+      - redis
+    command:
+      - '--redis.addr=redis://redis:6379'
+    ports:
+      - "9121:9121"
 
   # Prometheus for scraping app metrics
   prometheus:

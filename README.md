@@ -4,6 +4,7 @@ A comprehensive, production-ready expense management system with multi-level app
 
 ![Expe Logo](frontend/public/logo.svg)
 
+![Expe Dashboard](frontend/public/images/expe-dashboard.png)
 ## ✨ Features
 
 ### 🔐 Authentication & User Management
@@ -47,6 +48,37 @@ A comprehensive, production-ready expense management system with multi-level app
 - Grafana dashboards
 - Real-time performance monitoring
 - Custom business metrics
+
+## 🧭 System Architecture
+
+```mermaid
+flowchart LR
+  subgraph Frontend [React (Vite)]
+    UI[UI: Tailwind + Components]
+    APIClient[Axios]
+  end
+
+  subgraph Backend [Node.js Express API]
+    Auth[JWT Auth]
+    OCR[OCR Service]
+    Rules[Approval Rules]
+    Metrics[Prometheus Metrics]
+  end
+
+  subgraph Infra [Infrastructure]
+    DB[(PostgreSQL)]
+    Cache[(Redis)]
+    Prom[Prometheus]
+    Graf[Grafana]
+  end
+
+  UI --> APIClient --> Backend
+  Backend --> DB
+  Backend --> Cache
+  Backend -->|/metrics| Prom
+  Prom --> Graf
+  OCR -->|Tesseract + Sharp| Backend
+```
 
 ## 🛠️ Tech Stack
 
@@ -160,6 +192,33 @@ Open browser: `http://localhost:5173`
 
 **First Time**: Click "Sign Up" to create your company and admin account
 
+## 🔁 Approval Workflow (High-Level)
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Emp as Employee
+  participant FE as Frontend (React)
+  participant BE as Backend (Express)
+  participant DB as PostgreSQL
+  participant Adm as Admin/Manager
+
+  Emp->>FE: Create Expense + Upload Receipt
+  FE->>BE: POST /api/expenses (+ file)
+  BE->>BE: OCR (Gemini if available → fallback to Tesseract+Sharp)
+  BE->>DB: Save expense (draft)
+  Emp->>FE: Submit Expense
+  FE->>BE: POST /api/expenses/:id/submit
+  BE->>BE: Link Default Approval Rule (if configured)
+  BE->>BE: Resolve next approver (rule → manager → admin)
+  BE->>DB: Update status (pending_approval)
+  BE->>Adm: Send notification/email
+  Adm->>FE: Approve/Reject
+  FE->>BE: POST /api/approvals/expenses/:id/(approve|reject)
+  BE->>DB: Update history and status
+  BE-->>Emp: Email + Notification
+```
+
 ## 📖 Detailed Documentation
 
 For comprehensive setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
@@ -183,7 +242,28 @@ For comprehensive setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 
 ## 📸 Screenshots
 
-Coming soon...
+![Dashboard](frontend/public/images/expe-dashboard.png)
+
+> The same image is also featured on the landing page hero. Replace the file at `frontend/public/images/expe-dashboard.png` to update both.
+
+### Gallery
+
+Below are additional screenshots located in the `images/` directory:
+
+![Screenshot 0](images/0.png)
+![Screenshot 1](images/1.png)
+![Screenshot 2](images/2.png)
+![Screenshot 3](images/3.png)
+![Screenshot 4](images/4.png)
+![Screenshot 5](images/5.png)
+![Screenshot 6](images/6.png)
+![Screenshot 7](images/7.png)
+![Screenshot 8](images/8.png)
+
+## 🎥 Demo Video
+
+Watch the product walkthrough:
+https://drive.google.com/file/d/1Vqli2c8zFLv9qGWJW90Xd-eaBPsHWp_l/view?usp=sharing
 
 ## 🤝 Contributing
 
@@ -192,3 +272,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 MIT License - See LICENSE file for details
+
+---
+
+## ✨ Creator
+
+Made with care by: **Mihir Rabari**
+
+- LinkedIn: [Mihir Rabari](https://www.linkedin.com/in/mihir-rabari?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)
+- GitHub: [Mihir-Rabari](https://github.com/Mihir-Rabari)
+- Email: [mihirrabari2604@gmail.com](mailto:mihirrabari2604@gmail.com)
