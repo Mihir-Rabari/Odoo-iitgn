@@ -7,26 +7,40 @@
 - ✅ Authentication system (signup, login, password reset, JWT)
 - ✅ User management with role-based access (Admin, Manager, Employee)
 - ✅ Expense CRUD operations with status tracking
-- ✅ Multi-level approval workflow with sequential routing
 - ✅ Conditional approval rules (percentage, specific approver, hybrid)
 - ✅ **Auto-submit expenses for approval** (no manual submission needed)
 - ✅ **Default admin approver** for employees without assigned managers
-- ✅ **Auto-link default approval rule** to expenses during submission (uses latest active company rule)
+- ✅ Support for company "Default Approval Rule" with admin endpoint to set default
+- ✅ Expenses list, details, create/edit forms
+- ✅ Expense Detail shows "Applied Approval Rule" pulled from `GET /expenses/:id`
+- ✅ Approval Rules page shows a "Default" badge and provides a "Set Default" action
+- ✅ **Default Approval Rule** feature: auto-links latest active company rule to expenses during submission
+- ✅ **Set Default Approval Rule** endpoint: `PATCH /approvals/rules/:id/default` (admin)
+
+## 📈 Monitoring
+
+- **Prometheus** and **Grafana** enabled in `docker-compose.yml`.
+- Prometheus config at `monitoring/prometheus.yml` scrapes the backend at `host.docker.internal:3000/metrics`.
+- Grafana is provisioned with a Prometheus datasource (`http://prometheus:9090`).
+
+### How to run
+- Start monitoring stack (requires backend running on port 3000):
+  - `docker compose up -d prometheus grafana`
+- Open Grafana: http://localhost:3001 (admin/admin by default; change credentials later)
+- Add/import dashboards as needed (e.g., request metrics for `http_request_duration_seconds`, `http_requests_total`, custom counters).
+- ✅ **Admin UI for Setting Default Rule**: Approval Rules page shows a "Default" badge and provides a "Set Default" action
 - ✅ **Automatic manager assignment** during user creation (with validation)
 - ✅ OCR integration for receipt scanning (Tesseract.js + Sharp)
 - ✅ Currency conversion service with real-time rates
 - ✅ Email service with nodemailer + Resend/Gmail support
-- ✅ **Full notifications system** (create, read, mark as read, delete)
 - ✅ **Real-time notification triggers** for all approval actions
 - ✅ Prometheus metrics integration
 - ✅ Redis caching for performance
 - ✅ All API routes and controllers
 - ✅ Request validation with Joi
 - ✅ Error handling middleware
-- ✅ Winston logging
+- ✅ winston logging
 - ✅ File upload handling with Multer
-
-### Infrastructure (100%) ✅
 - ✅ Docker Compose orchestration
 - ✅ PostgreSQL 15 container
 - ✅ Redis 7 container
@@ -135,6 +149,8 @@ docker-compose up -d
    - Approver assignment works automatically
    - Manager sees expenses in "Pending Approvals" tab
    - Auto-linking of company approval rule if none linked to the expense
+   - Admin can set a company-wide Default Approval Rule; submission prefers this rule
+   - Expense details include applied rule name(s)
 
 3. ✅ **Notification System Complete**
    - Notifications created on expense submission

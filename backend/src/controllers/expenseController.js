@@ -5,7 +5,7 @@ import * as userModel from '../models/userModel.js';
 import * as approvalModel from '../models/approvalModel.js';
 import * as notificationModel from '../models/notificationModel.js';
 import { convertCurrency } from '../services/currencyService.js';
-import { extractExpenseFromReceipt as extractWithGemini } from '../services/geminiOcrService.js';
+import { extractExpenseFromReceipt as extractWithGemini, validateExpenseData as validateGeminiData } from '../services/geminiOcrService.js';
 import { extractTextFromImage, parseExpenseFromText } from '../services/ocrService.js';
 import { logger } from '../utils/logger.js';
 import { config } from '../config/config.js';
@@ -67,17 +67,30 @@ export const submitExpense = async (req, res) => {
   // Get employee
   const employee = await userModel.findUserById(req.user.id);
   
-  // Ensure an approval rule is linked; if none, link the latest active company rule
+  // Ensure an approval rule is linked; prefer company default if available
   let ruleUsed = null;
   try {
     const existingRules = await approvalModel.getApprovalRulesForExpense(expense.id);
     if (existingRules && existingRules.length > 0) {
       ruleUsed = existingRules[0];
     } else {
-      const companyRules = await approvalModel.getApprovalRulesByCompany(req.user.company_id);
-      if (companyRules && companyRules.length > 0) {
-        await approvalModel.linkExpenseToApprovalRule(expense.id, companyRules[0].id);
-        ruleUsed = companyRules[0];
+      // Try default rule first
+      let defaultRule = null;
+      try {
+        defaultRule = await approvalModel.getDefaultApprovalRule(req.user.company_id);
+      } catch (err) {
+        // fallback silently if column not present yet
+      }
+      if (defaultRule) {
+        await approvalModel.linkExpenseToApprovalRule(expense.id, defaultRule.id);
+        ruleUsed = defaultRule;
+      } else {
+        // fallback to most recent active rule
+        const companyRules = await approvalModel.getApprovalRulesByCompany(req.user.company_id);
+        if (companyRules && companyRules.length > 0) {
+          await approvalModel.linkExpenseToApprovalRule(expense.id, companyRules[0].id);
+          ruleUsed = companyRules[0];
+        }
       }
     }
   } catch (e) {
@@ -237,12 +250,21 @@ export const getExpenseById = async (req, res) => {
 
   // Get approval history
   const approvalHistory = await approvalModel.getApprovalHistory(expense.id);
+  // Get applied approval rules (names)
+  let appliedRuleSummaries = [];
+  try {
+    const appliedRules = await approvalModel.getApprovalRulesForExpense(expense.id);
+    appliedRuleSummaries = (appliedRules || []).map(r => ({ id: r.id, name: r.name }));
+  } catch (e) {
+    // ignore if linkage missing
+  }
 
   res.json({
     success: true,
     data: {
       ...expense,
-      approval_history: approvalHistory
+      approval_history: approvalHistory,
+      applied_rules: appliedRuleSummaries
     }
   });
 };
@@ -364,46 +386,67 @@ export const extractExpenseFromReceipt = async (req, res) => {
     throw new AppError('No receipt image provided', 400);
   }
 
-  try {
-    // Check if Gemini API key is available
-    const useGemini = config.geminiApiKey && config.geminiApiKey !== '';
-    
-    let expenseData;
-    let method;
+  const useGemini = !!(config.geminiApiKey && config.geminiApiKey !== '');
+  let expenseData = null;
+  let method = null;
+  let fallbackUsed = false;
 
-    if (useGemini) {
-      // Use Gemini AI for better accuracy and structured output
+  // Try Gemini first when configured
+  if (useGemini) {
+    try {
       logger.info('Using Gemini AI for OCR extraction');
       const result = await extractWithGemini(req.file.path);
       expenseData = result.data;
       method = 'gemini-ai';
-    } else {
-      // Fallback to Tesseract OCR
-      logger.info('Using Tesseract OCR (Gemini API key not found)');
+
+      // Validate Gemini output; fallback if invalid or low confidence
+      try {
+        const validation = validateGeminiData(expenseData);
+        if (!validation.isValid) {
+          logger.warn('Gemini OCR validation failed, falling back to Tesseract', { errors: validation.errors });
+          expenseData = null;
+        }
+      } catch (valErr) {
+        logger.warn('Gemini OCR validation error, falling back to Tesseract', { error: valErr.message });
+        expenseData = null;
+      }
+    } catch (gemErr) {
+      logger.warn('Gemini OCR failed, falling back to Tesseract', { error: gemErr.message });
+      expenseData = null;
+    }
+  }
+
+  // Fallback to Tesseract + Sharp if Gemini unavailable/failed/invalid
+  if (!expenseData) {
+    try {
+      const useReason = useGemini ? 'fallback' : 'no-gemini-key';
+      logger.info(`Using Tesseract OCR (${useReason})`);
       const text = await extractTextFromImage(req.file.path);
       expenseData = parseExpenseFromText(text);
-      method = 'tesseract';
+      method = useGemini ? 'tesseract-fallback' : 'tesseract';
+      fallbackUsed = useGemini;
+    } catch (tesErr) {
+      logger.error('Tesseract OCR failed', { error: tesErr.message });
+      throw new AppError('Failed to process receipt', 500);
     }
-
-    res.json({
-      success: true,
-      message: 'Receipt processed successfully',
-      data: {
-        amount: expenseData.amount,
-        currency: expenseData.currency,
-        date: expenseData.date,
-        merchant: expenseData.merchantName || expenseData.merchant,
-        description: expenseData.description,
-        category: expenseData.category,
-        confidence: expenseData.confidence,
-        receipt_url: `/uploads/${req.file.filename}`,
-        method: method
-      }
-    });
-  } catch (error) {
-    logger.error('OCR processing failed:', error);
-    throw new AppError('Failed to process receipt', 500);
   }
+
+  res.json({
+    success: true,
+    message: 'Receipt processed successfully',
+    data: {
+      amount: expenseData.amount,
+      currency: expenseData.currency,
+      date: expenseData.date,
+      merchant: expenseData.merchantName || expenseData.merchant,
+      description: expenseData.description,
+      category: expenseData.category,
+      confidence: expenseData.confidence ?? null,
+      receipt_url: `/uploads/${req.file.filename}`,
+      method,
+      fallback_used: fallbackUsed
+    }
+  });
 };
 
 export default {

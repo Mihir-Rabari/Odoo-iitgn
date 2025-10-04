@@ -163,11 +163,46 @@ export const getApprovalRulesForExpense = async (expenseId) => {
   return result.rows;
 };
 
-// Check if percentage approval threshold is met
+// Default rule helpers (requires is_default column on approval_rules)
+export const getDefaultApprovalRule = async (companyId) => {
+  // Ensure column exists (non-destructive on existing DBs)
+  await query(`ALTER TABLE approval_rules ADD COLUMN IF NOT EXISTS is_default BOOLEAN DEFAULT FALSE`);
+  const result = await query(
+    `SELECT * FROM approval_rules 
+     WHERE company_id = $1 AND is_active = true AND is_default = true 
+     ORDER BY created_at DESC LIMIT 1`,
+    [companyId]
+  );
+  return result.rows[0] || null;
+};
+
+export const setDefaultApprovalRule = async (companyId, ruleId) => {
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+    // Ensure column exists
+    await client.query(`ALTER TABLE approval_rules ADD COLUMN IF NOT EXISTS is_default BOOLEAN DEFAULT FALSE`);
+    await client.query(`UPDATE approval_rules SET is_default = false WHERE company_id = $1`, [companyId]);
+    const res = await client.query(
+      `UPDATE approval_rules SET is_default = true, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $1 AND company_id = $2 RETURNING *`,
+      [ruleId, companyId]
+    );
+    await client.query('COMMIT');
+    return res.rows[0];
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+};
+
 export const checkPercentageApproval = async (expenseId, ruleId) => {
   const rule = await getApprovalRuleById(ruleId);
   const approvers = await getApproversForRule(ruleId);
-  
+  if (!approvers || approvers.length === 0) return false;
+
   const approvalHistory = await query(
     `SELECT COUNT(*) as approved_count
      FROM approval_history
@@ -179,7 +214,7 @@ export const checkPercentageApproval = async (expenseId, ruleId) => {
   const totalApprovers = approvers.length;
   const approvalPercentage = (approvedCount / totalApprovers) * 100;
 
-  return approvalPercentage >= rule.min_approval_percentage;
+  return approvalPercentage >= Number(rule.min_approval_percentage || 0);
 };
 
 // Check if specific approver has approved
@@ -206,5 +241,7 @@ export default {
   linkExpenseToApprovalRule,
   getApprovalRulesForExpense,
   checkPercentageApproval,
-  checkSpecificApproverApproval
+  checkSpecificApproverApproval,
+  getDefaultApprovalRule,
+  setDefaultApprovalRule
 };

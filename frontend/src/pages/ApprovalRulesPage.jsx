@@ -45,6 +45,16 @@ const ApprovalRulesPage = () => {
     }
   };
 
+  const handleSetDefault = async (ruleId) => {
+    try {
+      await api.patch(`/approvals/rules/${ruleId}/default`);
+      toast.success('Default rule updated');
+      fetchRules();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to set default rule');
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       const response = await api.get('/users');
@@ -109,10 +119,30 @@ const ApprovalRulesPage = () => {
 
     setSubmitting(true);
     try {
+      // Map to backend snake_case payload
       const payload = {
-        ...formData,
-        minApprovalPercentage: formData.minApprovalPercentage ? parseFloat(formData.minApprovalPercentage) : null,
+        name: formData.name,
+        description: formData.description || '',
+        use_approver_sequence: !!formData.useApproverSequence && !formData.hasSpecificApprover,
+        has_specific_approver: !!formData.hasSpecificApprover,
+        specific_approver_id: formData.hasSpecificApprover && formData.specificApproverId ? formData.specificApproverId : null,
+        is_hybrid: false,
       };
+      // Only include min_approval_percentage for percentage-based
+      if (!formData.useApproverSequence && !formData.hasSpecificApprover && formData.minApprovalPercentage) {
+        payload.min_approval_percentage = parseFloat(formData.minApprovalPercentage);
+      }
+      // Approvers mapping
+      const mappedApprovers = (!formData.hasSpecificApprover ? formData.approvers : [])
+        .filter(a => a.userId)
+        .map((a, idx) => ({
+          user_id: a.userId,
+          sequence_order: formData.useApproverSequence ? (a.sequenceOrder || idx + 1) : (idx + 1),
+          is_required: !!a.isRequired,
+        }));
+      if (mappedApprovers.length > 0) {
+        payload.approvers = mappedApprovers;
+      }
 
       if (editingRule) {
         await api.patch(`/approvals/rules/${editingRule.id}`, payload);
@@ -210,6 +240,7 @@ const ApprovalRulesPage = () => {
                   <TableHead>Type</TableHead>
                   <TableHead>Approvers</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Default</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -248,7 +279,24 @@ const ApprovalRulesPage = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
+                      {rule.is_default ? (
+                        <Badge variant="secondary">Default</Badge>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center justify-end space-x-2">
+                        {!rule.is_default && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSetDefault(rule.id)}
+                            title="Set as Default"
+                          >
+                            Set Default
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"

@@ -9,6 +9,26 @@ import { sendExpenseApprovedEmail, sendExpenseRejectedEmail, sendApprovalRequest
 import { incrementApprovalAction } from '../middleware/metrics.js';
 import { logger } from '../utils/logger.js';
 
+// Set default approval rule (Admin)
+export const setDefaultApprovalRule = async (req, res) => {
+  const { id } = req.params;
+  // Verify rule belongs to company
+  const rule = await approvalModel.getApprovalRuleById(id);
+  if (!rule) {
+    throw new AppError('Approval rule not found', 404);
+  }
+  if (rule.company_id !== req.user.company_id) {
+    throw new AppError('Access denied', 403);
+  }
+
+  const updated = await approvalModel.setDefaultApprovalRule(req.user.company_id, id);
+
+  res.json({
+    success: true,
+    message: 'Default approval rule set successfully',
+    data: updated
+  });
+};
 // Approve expense
 export const approveExpense = async (req, res) => {
   const { id } = req.params;
@@ -448,6 +468,7 @@ export default {
   createApprovalRule,
   getApprovalRules,
   getApprovalRuleById,
+  setDefaultApprovalRule,
   updateApprovalRule,
   deleteApprovalRule,
   addApproverToRule,

@@ -54,6 +54,7 @@ router.post('/expenses/:id/reject', authenticate, authorize('manager', 'admin'),
 router.get('/rules', authenticate, authorize('admin'), approvalController.getApprovalRules);
 router.get('/rules/:id', authenticate, authorize('admin'), approvalController.getApprovalRuleById);
 router.post('/rules', authenticate, authorize('admin'), validate(createApprovalRuleSchema), approvalController.createApprovalRule);
+router.patch('/rules/:id/default', authenticate, authorize('admin'), approvalController.setDefaultApprovalRule);
 router.patch('/rules/:id', authenticate, authorize('admin'), validate(updateApprovalRuleSchema), approvalController.updateApprovalRule);
 router.delete('/rules/:id', authenticate, authorize('admin'), approvalController.deleteApprovalRule);
 router.post('/rules/:rule_id/approvers', authenticate, authorize('admin'), validate(addApproverSchema), approvalController.addApproverToRule);

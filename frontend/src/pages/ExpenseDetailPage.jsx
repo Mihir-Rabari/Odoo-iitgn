@@ -117,16 +117,20 @@ const ExpenseDetailPage = () => {
                 <p className="mt-1">{expense.paid_by || 'N/A'}</p>
               </div>
             </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">Applied Approval Rule</label>
+              <p className="mt-1">
+                {expense.applied_rules && expense.applied_rules.length > 0
+                  ? expense.applied_rules.map((r) => r.name).join(', ')
+                  : 'None'}
+              </p>
+            </div>
             {expense.remarks && (
               <div>
                 <label className="text-sm font-medium text-gray-600">Remarks</label>
                 <p className="mt-1">{expense.remarks}</p>
               </div>
             )}
-            <div>
-              <label className="text-sm font-medium text-gray-600">Submitted By</label>
-              <p className="mt-1">{expense.employee_name}</p>
-            </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Submitted On</label>
               <p className="mt-1">{formatDateTime(expense.created_at)}</p>
@@ -174,7 +178,7 @@ const ExpenseDetailPage = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {approvalHistory.map((history, index) => (
+              {approvalHistory.map((history) => (
                 <div key={history.id} className="flex items-start space-x-4">
                   <div className={`p-2 rounded-full ${
                     history.action === 'approved' ? 'bg-green-100' : 
