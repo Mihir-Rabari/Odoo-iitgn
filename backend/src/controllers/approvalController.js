@@ -58,19 +58,38 @@ export const approveExpense = async (req, res) => {
           // Move to next approver
           const nextApproverData = approvers[currentStep];
           nextApprover = await userModel.findUserById(nextApproverData.user_id);
+          
+          // Safety check: If next approver not found or inactive, default to admin
+          if (!nextApprover || !nextApprover.is_active) {
+            logger.warn(`Next approver not found/inactive in rule ${rule.id}, defaulting to admin`);
+            const admins = await userModel.getUsersByCompany(expense.company_id, { role: 'admin' });
+            if (admins.length > 0) {
+              nextApprover = admins[0];
+            }
+          }
         } else {
           isFullyApproved = true;
         }
       }
 
       if (rule.has_specific_approver) {
-        // Check if specific approver approved
-        const specificApproved = await approvalModel.checkSpecificApproverApproval(
-          expense.id,
-          rule.specific_approver_id
-        );
-        if (specificApproved && !rule.is_hybrid) {
-          isFullyApproved = true;
+        // Check if specific approver exists and is active
+        const specificApprover = await userModel.findUserById(rule.specific_approver_id);
+        if (!specificApprover || !specificApprover.is_active) {
+          logger.warn(`Specific approver not found/inactive in rule ${rule.id}, defaulting to admin`);
+          const admins = await userModel.getUsersByCompany(expense.company_id, { role: 'admin' });
+          if (admins.length > 0) {
+            nextApprover = admins[0];
+          }
+        } else {
+          // Check if specific approver approved
+          const specificApproved = await approvalModel.checkSpecificApproverApproval(
+            expense.id,
+            rule.specific_approver_id
+          );
+          if (specificApproved && !rule.is_hybrid) {
+            isFullyApproved = true;
+          }
         }
       }
 
@@ -103,6 +122,19 @@ export const approveExpense = async (req, res) => {
   } else {
     // No rules, just sequential manager approval
     isFullyApproved = true;
+  }
+
+  // Final safety check: If no next approver found but not fully approved, default to admin
+  if (!isFullyApproved && !nextApprover) {
+    logger.warn(`No next approver found for expense ${expense.id}, defaulting to admin`);
+    const admins = await userModel.getUsersByCompany(expense.company_id, { role: 'admin' });
+    if (admins.length > 0) {
+      nextApprover = admins[0];
+    } else {
+      // If no admin exists, mark as fully approved to prevent getting stuck
+      logger.error(`No admin found for company ${expense.company_id}, marking expense as fully approved`);
+      isFullyApproved = true;
+    }
   }
 
   // Update expense

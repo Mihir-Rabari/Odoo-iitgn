@@ -140,13 +140,19 @@ docker-compose up -d
    - Notifications for next approver in chain
    - API endpoints: GET, mark as read, delete
 
-4. ✅ **UI Fixes**
+4. ✅ **Approval Rules Safety Mechanisms**
+   - Default to admin if next approver not found/inactive
+   - Default to admin if specific approver deleted/inactive
+   - Fallback to admin for broken approval chains
+   - Auto-approve if no admin exists (prevents infinite loops)
+
+5. ✅ **UI Fixes**
    - Fixed white screen on expense detail page
    - Fixed Intl.DateFormat errors with fallbacks
    - Categories load dynamically from API
    - Proper response parsing throughout
 
-5. ✅ **Email Configuration**
+6. ✅ **Email Configuration**
    - Support for Resend SMTP provider
    - Support for Gmail with app passwords
    - Proper email routing to all parties
