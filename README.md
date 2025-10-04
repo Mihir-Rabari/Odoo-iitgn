@@ -1,152 +1,194 @@
-<<<<<<< HEAD
-# Expe - Expense Reimbursement System
+# Expe 💼 - Expense Reimbursement System
 
-A comprehensive expense management system with multi-level approval workflows, OCR receipt scanning, and conditional approval rules.
+A comprehensive, production-ready expense management system with multi-level approval workflows, OCR receipt scanning, and conditional approval rules.
 
-## Features
+![Expe Logo](frontend/public/logo.svg)
 
-- **Authentication & User Management**: Auto-create company and admin on first signup
-- **Multi-Currency Support**: Submit expenses in any currency with real-time conversion
-- **Multi-Level Approvals**: Sequential approval workflows with flexible routing
-- **Conditional Approval Rules**: Percentage-based and specific approver rules
-- **OCR Receipt Scanning**: Auto-extract expense details from receipts
-- **Role-Based Access**: Admin, Manager, and Employee roles with specific permissions
+## ✨ Features
 
-## Tech Stack
+### 🔐 Authentication & User Management
+- Auto-create company and admin on first signup
+- JWT-based authentication
+- Role-based access control (Admin, Manager, Employee)
+- Password reset functionality
+- Email notifications with beautiful templates
+
+### 💰 Expense Management
+- Submit expenses in any currency
+- Real-time currency conversion
+- OCR receipt scanning (auto-extract expense details)
+- Multiple expense categories
+- Draft, submit, and track expenses
+- Comprehensive expense history
+
+### ✅ Multi-Level Approval Workflows
+- Sequential approval chains (Manager → Finance → Director)
+- Percentage-based approval rules (e.g., 60% must approve)
+- Specific approver bypass (e.g., CFO auto-approves)
+- Hybrid rules (combine sequential + conditional)
+- Manager approval routing
+- Approval history tracking
+
+### 🌍 Multi-Currency Support
+- 150+ countries and currencies
+- Real-time exchange rate conversion
+- Display in both original and company currency
+
+### 📧 Email Notifications
+- 7 beautiful, responsive email templates
+- Welcome emails with credentials
+- Expense submission confirmations
+- Approval request notifications
+- Approval/rejection notifications
+- Password reset emails
+
+### 📊 Monitoring & Analytics
+- Prometheus metrics integration
+- Grafana dashboards
+- Real-time performance monitoring
+- Custom business metrics
+
+## 🛠️ Tech Stack
 
 ### Backend
-- Node.js with Express
-- PostgreSQL (Database)
-- Redis (Caching & Session Management)
-- JWT Authentication
-- Tesseract.js (OCR)
-- Docker
+- **Runtime**: Node.js 18+ with Express
+- **Database**: PostgreSQL 15
+- **Cache**: Redis 7
+- **Authentication**: JWT
+- **OCR**: Tesseract.js
+- **Email**: Nodemailer
+- **Validation**: Joi
+- **Logging**: Winston
 
 ### Frontend
-- React 18
-- TailwindCSS
-- shadcn/ui
-- Lucide Icons
-- Vite
+- **Framework**: React 18
+- **Build Tool**: Vite
+- **Styling**: TailwindCSS
+- **UI Components**: Custom components inspired by shadcn/ui
+- **Icons**: Lucide React
+- **Forms**: React Hook Form + Zod
+- **State**: Zustand
+- **HTTP**: Axios
 
-### Monitoring
-- Prometheus (Metrics)
-- Grafana (Visualization)
+### Infrastructure
+- **Containerization**: Docker & Docker Compose
+- **Monitoring**: Prometheus + Grafana
+- **Database**: PostgreSQL (Dockerized)
+- **Cache**: Redis (Dockerized)
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-├── backend/           # Node.js Express API
-├── frontend/          # React application
-├── docker/            # Docker configurations
-└── monitoring/        # Prometheus & Grafana configs
+expe/
+├── backend/                 # Node.js Express API
+│   ├── src/
+│   │   ├── config/         # Configuration files
+│   │   ├── controllers/    # Request handlers
+│   │   ├── database/       # DB connection & migrations
+│   │   ├── middleware/     # Auth, validation, error handling
+│   │   ├── models/         # Database models
+│   │   ├── routes/         # API routes
+│   │   ├── services/       # Business logic (OCR, currency)
+│   │   ├── templates/      # Email templates
+│   │   └── utils/          # Helper functions
+│   └── package.json
+├── frontend/               # React application
+│   ├── src/
+│   │   ├── components/    # Reusable UI components
+│   │   ├── pages/         # Page components
+│   │   ├── lib/           # Utilities (axios, utils)
+│   │   └── store/         # State management
+│   └── package.json
+├── monitoring/            # Prometheus & Grafana configs
+├── docker-compose.yml     # Docker orchestration
+├── SETUP_GUIDE.md        # Detailed setup instructions
+└── README.md             # This file
 ```
 
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-- Docker & Docker Compose
-- Node.js 18+ (for local development)
+- [Node.js 18+](https://nodejs.org/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
 - Git
 
-### Installation
+### 1. Clone & Setup
 
-1. Clone the repository:
 ```bash
 git clone https://github.com/Mihir-Rabari/Odoo-iitgn.git
 cd Odoo-iitgn
 ```
 
-2. Start infrastructure services:
+### 2. Start Docker Services
+
 ```bash
 docker-compose up -d
 ```
 
-3. Install backend dependencies:
+Verify services are running:
+```bash
+docker-compose ps
+```
+
+### 3. Backend Setup
+
 ```bash
 cd backend
 npm install
-```
-
-4. Install frontend dependencies:
-```bash
-cd frontend
-npm install
-```
-
-5. Run migrations:
-```bash
-cd backend
+cp .env.example .env
+# Edit .env with your configuration
 npm run migrate
+npm run dev
 ```
 
-6. Start development servers:
+Backend runs on: `http://localhost:3000`
+
+### 4. Frontend Setup
+
 ```bash
-# Backend
-cd backend
-npm run dev
-
-# Frontend (in another terminal)
 cd frontend
+npm install
+cp .env.example .env
 npm run dev
 ```
 
-## API Endpoints
+Frontend runs on: `http://localhost:5173`
+
+### 5. Access Application
+
+Open browser: `http://localhost:5173`
+
+**First Time**: Click "Sign Up" to create your company and admin account
+
+## 📖 Detailed Documentation
+
+For comprehensive setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
+
+## 🔑 Key API Endpoints
 
 ### Authentication
 - `POST /api/auth/signup` - Create account and company
 - `POST /api/auth/login` - User login
 - `POST /api/auth/forgot-password` - Request password reset
 
-### Users
-- `GET /api/users` - List users (Admin only)
-- `POST /api/users` - Create user (Admin only)
-- `PATCH /api/users/:id` - Update user
-- `DELETE /api/users/:id` - Delete user (Admin only)
-
 ### Expenses
 - `GET /api/expenses` - List expenses (filtered by role)
 - `POST /api/expenses` - Submit expense
-- `GET /api/expenses/:id` - Get expense details
-- `PATCH /api/expenses/:id` - Update expense
 - `POST /api/expenses/ocr` - Extract expense from receipt
 
 ### Approvals
 - `GET /api/approvals/pending` - Get pending approvals
-- `POST /api/approvals/:id/approve` - Approve expense
-- `POST /api/approvals/:id/reject` - Reject expense
+- `POST /api/approvals/expenses/:id/approve` - Approve expense
+- `POST /api/approvals/expenses/:id/reject` - Reject expense
 
-### Approval Rules
-- `GET /api/approval-rules` - List approval rules
-- `POST /api/approval-rules` - Create approval rule
-- `PATCH /api/approval-rules/:id` - Update approval rule
-- `DELETE /api/approval-rules/:id` - Delete approval rule
+## 📸 Screenshots
 
-## Environment Variables
+Coming soon...
 
-```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/expe
+## 🤝 Contributing
 
-# Redis
-REDIS_URL=redis://localhost:6379
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-# JWT
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=7d
+## 📄 License
 
-# External APIs
-EXCHANGE_RATE_API_URL=https://api.exchangerate-api.com/v4/latest
-COUNTRIES_API_URL=https://restcountries.com/v3.1/all
-
-# Server
-PORT=3000
-NODE_ENV=development
-```
-
-## License
-
-MIT
-=======
-# Odoo-iitgn
->>>>>>> 41accacf1d134c227f9210372d136b999876d694
+MIT License - See LICENSE file for details
