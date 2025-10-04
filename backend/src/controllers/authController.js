@@ -111,6 +111,17 @@ export const login = async (req, res) => {
   // Generate token
   const token = generateToken(user.id);
 
+  // Send welcome email on first login (don't wait for it)
+  // Check if this is first login by checking created_at vs current time
+  const accountAge = Date.now() - new Date(user.created_at).getTime();
+  const isNewAccount = accountAge < 24 * 60 * 60 * 1000; // Less than 24 hours old
+  
+  if (isNewAccount) {
+    sendWelcomeEmail(user).catch(err => 
+      logger.error('Failed to send welcome email on login:', err)
+    );
+  }
+
   res.json({
     success: true,
     message: 'Login successful',
