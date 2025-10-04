@@ -398,9 +398,21 @@ export const removeApproverFromRule = async (req, res) => {
   });
 };
 
+// Get pending approvals for current user
+export const getPendingApprovals = async (req, res) => {
+  // Get all expenses where current user is the approver
+  const pendingApprovals = await expenseModel.getPendingApprovalsForUser(req.user.id);
+
+  res.json({
+    success: true,
+    data: pendingApprovals
+  });
+};
+
 export default {
   approveExpense,
   rejectExpense,
+  getPendingApprovals,
   createApprovalRule,
   getApprovalRules,
   getApprovalRuleById,

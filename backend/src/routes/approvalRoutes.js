@@ -43,6 +43,9 @@ const addApproverSchema = Joi.object({
   is_required: Joi.boolean()
 });
 
+// Get pending approvals for current user
+router.get('/pending', authenticate, approvalController.getPendingApprovals);
+
 // Expense approval routes
 router.post('/expenses/:id/approve', authenticate, authorize('manager', 'admin'), validate(approveRejectSchema), approvalController.approveExpense);
 router.post('/expenses/:id/reject', authenticate, authorize('manager', 'admin'), validate(approveRejectSchema), approvalController.rejectExpense);
