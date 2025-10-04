@@ -53,12 +53,12 @@ A comprehensive, production-ready expense management system with multi-level app
 
 ```mermaid
 flowchart LR
-  subgraph Frontend (React + Vite)
+  subgraph Frontend ["Frontend - React + Vite"]
     UI[UI: Tailwind + Components]
     APIClient[Axios]
   end
 
-  subgraph Backend (Node.js Express API)
+  subgraph Backend ["Backend - Node.js Express API"]
     API[Express API]
     Auth[JWT Auth]
     OCR[OCR Service]
@@ -79,6 +79,7 @@ flowchart LR
   API -->|/metrics| Prom
   Prom --> Graf
   OCR -->|Tesseract + Sharp| API
+
 ```
 
 ## 🛠️ Tech Stack
