@@ -68,14 +68,14 @@ export const sendEmail = async ({ to, subject, template, data }) => {
 
     const info = await transporter.sendMail(mailOptions);
     
-    logger.info(`Email sent: ${info.messageId}`);
+    logger.info(`✅ Email sent successfully: ${subject} to ${to}`);
     if (config.nodeEnv === 'development') {
       logger.info(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
     }
     
     return info;
   } catch (error) {
-    logger.error('Failed to send email:', error);
+    logger.error(`❌ Failed to send email to ${to}:`, error.message);
     throw error;
   }
 };
