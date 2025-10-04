@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -31,6 +32,9 @@ app.get('/health', (req, res) => {
 
 // Metrics endpoint for Prometheus
 app.get('/metrics', metricsEndpoint);
+
+// Static files: serve uploaded receipts publicly
+app.use('/uploads', express.static(path.resolve(config.uploadPath)));
 
 // API Routes
 app.use('/api', routes);

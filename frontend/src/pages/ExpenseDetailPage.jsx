@@ -16,6 +16,9 @@ const ExpenseDetailPage = () => {
   const [expense, setExpense] = useState(null);
   const [approvalHistory, setApprovalHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Derive backend base (strip trailing /api if present)
+  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+  const backendBase = apiBase.replace(/\/api\/?$/, '');
 
   useEffect(() => {
     fetchExpenseDetails();
@@ -147,14 +150,21 @@ const ExpenseDetailPage = () => {
             {expense.receipt_url ? (
               <div className="space-y-4">
                 <img
-                  src={expense.receipt_url}
+                  src={expense.receipt_url.startsWith('http') ? expense.receipt_url : `${backendBase}${expense.receipt_url}`}
                   alt="Receipt"
                   className="w-full rounded-lg border"
                 />
-                <Button variant="outline" className="w-full">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Receipt
-                </Button>
+                <a
+                  href={expense.receipt_url.startsWith('http') ? expense.receipt_url : `${backendBase}${expense.receipt_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <Button variant="outline" className="w-full">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Receipt
+                  </Button>
+                </a>
               </div>
             ) : (
               <div className="text-center py-12 border-2 border-dashed rounded-lg">
