@@ -1,0 +1,36 @@
+# Minimal Compose for VM with external Postgres & Redis
+# Runs only frontend (Nginx) and backend (Node.js)
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: expe-backend
+    env_file:
+      - .env
+    environment:
+      # Fallbacks if not in .env
+      - PORT=${PORT:-3000}
+      - UPLOAD_PATH=${UPLOAD_PATH:-/app/uploads}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8080}
+    volumes:
+      - uploads_data:/app/uploads
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    container_name: expe-frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+volumes:
+  uploads_data:
+    driver: local
