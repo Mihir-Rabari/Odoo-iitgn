@@ -10,6 +10,7 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL || 'postgresql://expe_user:expe_password@localhost:5432/expe_db',
   
   // Redis
+  redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   
   // JWT
   jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key',
