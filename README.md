@@ -4,7 +4,7 @@ A comprehensive, production-ready expense management system with multi-level app
 
 ![Expe Logo](frontend/public/logo.svg)
 
-![Expe Dashboard](frontend/public/images/expe-dashboard.png)
+![Expe Dashboard](/images/1.png)
 ## ✨ Features
 
 ### 🔐 Authentication & User Management
@@ -53,31 +53,32 @@ A comprehensive, production-ready expense management system with multi-level app
 
 ```mermaid
 flowchart LR
-  subgraph Frontend [React (Vite)]
+  subgraph Frontend (React + Vite)
     UI[UI: Tailwind + Components]
     APIClient[Axios]
   end
 
-  subgraph Backend [Node.js Express API]
+  subgraph Backend (Node.js Express API)
+    API[Express API]
     Auth[JWT Auth]
     OCR[OCR Service]
     Rules[Approval Rules]
     Metrics[Prometheus Metrics]
   end
 
-  subgraph Infra [Infrastructure]
+  subgraph Infrastructure
     DB[(PostgreSQL)]
     Cache[(Redis)]
     Prom[Prometheus]
     Graf[Grafana]
   end
 
-  UI --> APIClient --> Backend
-  Backend --> DB
-  Backend --> Cache
-  Backend -->|/metrics| Prom
+  UI --> APIClient --> API
+  API --> DB
+  API --> Cache
+  API -->|/metrics| Prom
   Prom --> Graf
-  OCR -->|Tesseract + Sharp| Backend
+  OCR -->|Tesseract + Sharp| API
 ```
 
 ## 🛠️ Tech Stack
@@ -244,14 +245,10 @@ For comprehensive setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)
 
 ![Dashboard](frontend/public/images/expe-dashboard.png)
 
-> The same image is also featured on the landing page hero. Replace the file at `frontend/public/images/expe-dashboard.png` to update both.
-
-### Gallery
-
 Below are additional screenshots located in the `images/` directory:
 
-![Screenshot 0](images/0.png)
 ![Screenshot 1](images/1.png)
+![Screenshot 0](images/0.png)
 ![Screenshot 2](images/2.png)
 ![Screenshot 3](images/3.png)
 ![Screenshot 4](images/4.png)
