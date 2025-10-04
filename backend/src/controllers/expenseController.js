@@ -64,21 +64,87 @@ export const submitExpense = async (req, res) => {
     throw new AppError('Expense already submitted', 400);
   }
 
-  // Get employee's manager
+  // Get employee
   const employee = await userModel.findUserById(req.user.id);
   
+  // Ensure an approval rule is linked; if none, link the latest active company rule
+  let ruleUsed = null;
+  try {
+    const existingRules = await approvalModel.getApprovalRulesForExpense(expense.id);
+    if (existingRules && existingRules.length > 0) {
+      ruleUsed = existingRules[0];
+    } else {
+      const companyRules = await approvalModel.getApprovalRulesByCompany(req.user.company_id);
+      if (companyRules && companyRules.length > 0) {
+        await approvalModel.linkExpenseToApprovalRule(expense.id, companyRules[0].id);
+        ruleUsed = companyRules[0];
+      }
+    }
+  } catch (e) {
+    logger.warn(`Failed to link/find approval rules for expense ${expense.id}: ${e.message}`);
+  }
+
   let nextApprover = null;
   let newStatus = 'submitted';
 
-  // Check if manager approval is required
-  if (employee.manager_id) {
-    nextApprover = await userModel.findUserById(employee.manager_id);
+  // Resolve next approver using rule if available
+  if (ruleUsed) {
+    if (ruleUsed.use_approver_sequence) {
+      const approvers = await approvalModel.getApproversForRule(ruleUsed.id);
+      if (approvers && approvers.length > 0) {
+        const first = approvers[0];
+        const candidate = await userModel.findUserById(first.user_id);
+        if (candidate && candidate.is_active) {
+          nextApprover = candidate;
+        }
+      }
+    } else if (ruleUsed.has_specific_approver && ruleUsed.specific_approver_id) {
+      const candidate = await userModel.findUserById(ruleUsed.specific_approver_id);
+      if (candidate && candidate.is_active) {
+        nextApprover = candidate;
+      }
+    }
+
+    // For percentage-based rules, choose first listed approver to start
+    if (!nextApprover && ruleUsed.min_approval_percentage) {
+      const approvers = await approvalModel.getApproversForRule(ruleUsed.id);
+      if (approvers && approvers.length > 0) {
+        const firstPct = approvers[0];
+        const candidate = await userModel.findUserById(firstPct.user_id);
+        if (candidate && candidate.is_active) {
+          nextApprover = candidate;
+        }
+      }
+    }
+
+    // If still no nextApprover from rule, fallback to employee's manager
+    if (!nextApprover && employee.manager_id) {
+      const candidate = await userModel.findUserById(employee.manager_id);
+      if (candidate && candidate.is_active) {
+        nextApprover = candidate;
+      }
+    }
+
+    // Final fallback to admin
+    if (!nextApprover) {
+      const admins = await userModel.getUsersByCompany(req.user.company_id, { role: 'admin' });
+      if (admins && admins.length > 0) {
+        nextApprover = admins[0];
+      }
+    }
   } else {
-    // If no manager assigned, default to admin
-    const admins = await userModel.getUsersByCompany(req.user.company_id, { role: 'admin' });
-    if (admins.length > 0) {
-      nextApprover = admins[0];
-      logger.info(`No manager assigned to ${employee.name}, defaulting to admin: ${nextApprover.name}`);
+    // No rule linked, use manager/admin fallback
+    if (employee.manager_id) {
+      const candidate = await userModel.findUserById(employee.manager_id);
+      if (candidate && candidate.is_active) {
+        nextApprover = candidate;
+      }
+    }
+    if (!nextApprover) {
+      const admins = await userModel.getUsersByCompany(req.user.company_id, { role: 'admin' });
+      if (admins && admins.length > 0) {
+        nextApprover = admins[0];
+      }
     }
   }
 

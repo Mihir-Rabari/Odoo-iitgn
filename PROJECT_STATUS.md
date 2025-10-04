@@ -11,6 +11,7 @@
 - ✅ Conditional approval rules (percentage, specific approver, hybrid)
 - ✅ **Auto-submit expenses for approval** (no manual submission needed)
 - ✅ **Default admin approver** for employees without assigned managers
+- ✅ **Auto-link default approval rule** to expenses during submission (uses latest active company rule)
 - ✅ **Automatic manager assignment** during user creation (with validation)
 - ✅ OCR integration for receipt scanning (Tesseract.js + Sharp)
 - ✅ Currency conversion service with real-time rates
@@ -133,6 +134,7 @@ docker-compose up -d
    - Status correctly shows "pending_approval" (not "submitted")
    - Approver assignment works automatically
    - Manager sees expenses in "Pending Approvals" tab
+   - Auto-linking of company approval rule if none linked to the expense
 
 3. ✅ **Notification System Complete**
    - Notifications created on expense submission
