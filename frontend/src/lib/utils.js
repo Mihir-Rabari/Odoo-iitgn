@@ -6,28 +6,52 @@ export function cn(...inputs) {
 }
 
 export function formatCurrency(amount, currency) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency || 'USD',
-  }).format(amount);
+  if (amount === null || amount === undefined) return '-';
+  try {
+    return new window.Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'USD',
+    }).format(amount);
+  } catch (error) {
+    // Fallback
+    return `${currency || 'USD'} ${Number(amount).toFixed(2)}`;
+  }
 }
 
 export function formatDate(date) {
-  return new Intl.DateFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(date));
+  if (!date) return '-';
+  try {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '-';
+    return new window.Intl.DateFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(d);
+  } catch (error) {
+    // Fallback if Intl is not available
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US');
+  }
 }
 
 export function formatDateTime(date) {
-  return new Intl.DateFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(date));
+  if (!date) return '-';
+  try {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '-';
+    return new window.Intl.DateFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d);
+  } catch (error) {
+    // Fallback if Intl is not available
+    const d = new Date(date);
+    return d.toLocaleString('en-US');
+  }
 }
 
 export function getInitials(name) {
