@@ -105,8 +105,19 @@ const CreateExpensePage = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      toast.success('Expense created successfully!');
-      navigate(`/dashboard/expenses/${response.data.data.id}`);
+      const expenseId = response.data.data.id;
+
+      // Auto-submit the expense for approval
+      try {
+        await api.post(`/expenses/${expenseId}/submit`);
+        toast.success('Expense submitted for approval!');
+      } catch (submitError) {
+        // If submit fails, still show success for creation
+        toast.success('Expense created successfully!');
+        console.error('Auto-submit failed:', submitError);
+      }
+
+      navigate('/dashboard/expenses');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create expense');
     } finally {
