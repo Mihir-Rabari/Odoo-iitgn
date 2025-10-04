@@ -10,11 +10,16 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL || 'postgresql://expe_user:expe_password@localhost:5432/expe_db',
   
   // Redis
-  redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   
   // JWT
   jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  
+  // Currency API
+  exchangeRateApiKey: process.env.EXCHANGE_RATE_API_KEY || '',
+  
+  // Gemini AI API
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
   
   // External APIs
   exchangeRateApiUrl: process.env.EXCHANGE_RATE_API_URL || 'https://api.exchangerate-api.com/v4/latest',
@@ -25,19 +30,17 @@ export const config = {
   uploadPath: process.env.UPLOAD_PATH || './uploads',
   
   // CORS
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   
   // Rate Limiting
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
   rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
   
-  // Email configuration
-  smtpHost: process.env.SMTP_HOST || 'smtp.ethereal.email',
-  smtpPort: parseInt(process.env.SMTP_PORT) || 587,
+  // Email
+  smtpHost: process.env.SMTP_HOST || 'smtp.gmail.com',
+  smtpPort: parseInt(process.env.SMTP_PORT || '587', 10),
   smtpSecure: process.env.SMTP_SECURE === 'true',
-  emailFrom: process.env.EMAIL_FROM || 'noreply@expe.com',
   emailUser: process.env.EMAIL_USER,
   emailPass: process.env.EMAIL_PASS,
-  
-  // Gemini AI configuration
-  geminiApiKey: process.env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY',
+  emailFrom: process.env.EMAIL_FROM || 'noreply@expe.com'
 };

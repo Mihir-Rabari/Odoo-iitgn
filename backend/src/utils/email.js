@@ -96,33 +96,6 @@ export const sendWelcomeEmail = async (user, tempPassword) => {
   });
 };
 
-export const sendLoginAlertEmail = async (user, loginInfo) => {
-  // Parse user agent for device info
-  const userAgent = loginInfo.userAgent || '';
-  const isMobile = /Mobile|Android|iPhone/i.test(userAgent);
-  const browser = userAgent.match(/(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/)?.[0] || 'Unknown Browser';
-  const os = userAgent.match(/(Windows|Mac|Linux|Android|iOS)/i)?.[0] || 'Unknown OS';
-  
-  return sendEmail({
-    to: user.email,
-    subject: '🔐 New Login to Your Expe Account',
-    template: 'login-alert',
-    data: {
-      name: user.name,
-      ip: loginInfo.ip,
-      device: isMobile ? 'Mobile Device' : 'Desktop/Laptop',
-      browser: browser,
-      os: os,
-      timestamp: new Date(loginInfo.timestamp).toLocaleString('en-US', {
-        dateStyle: 'full',
-        timeStyle: 'long'
-      }),
-      dashboardUrl: `${config.frontendUrl}/dashboard`,
-      supportUrl: `${config.frontendUrl}/support`
-    }
-  });
-};
-
 export const sendPasswordResetEmail = async (user, resetToken) => {
   return sendEmail({
     to: user.email,
@@ -221,14 +194,57 @@ export const sendExpenseFinallyApprovedEmail = async (employee, expense, convert
   });
 };
 
+export const sendLoginAlertEmail = async (user, loginInfo) => {
+  // Parse user agent for device/browser info
+  const userAgent = loginInfo.userAgent || '';
+  let deviceInfo = 'Unknown Device';
+  let browserInfo = 'Unknown Browser';
+  
+  if (userAgent.includes('Windows')) deviceInfo = 'Windows PC';
+  else if (userAgent.includes('Mac')) deviceInfo = 'Mac';
+  else if (userAgent.includes('Linux')) deviceInfo = 'Linux';
+  else if (userAgent.includes('Android')) deviceInfo = 'Android Device';
+  else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) deviceInfo = 'iOS Device';
+  
+  if (userAgent.includes('Chrome')) browserInfo = 'Chrome';
+  else if (userAgent.includes('Firefox')) browserInfo = 'Firefox';
+  else if (userAgent.includes('Safari')) browserInfo = 'Safari';
+  else if (userAgent.includes('Edge')) browserInfo = 'Edge';
+  
+  const loginDate = new Date(loginInfo.timestamp);
+  const formattedDate = loginDate.toLocaleDateString('en-US', { 
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+  });
+  const formattedTime = loginDate.toLocaleTimeString('en-US', { 
+    hour: '2-digit', minute: '2-digit', second: '2-digit' 
+  });
+
+  return sendEmail({
+    to: user.email,
+    subject: '🔐 New Login Alert - Expe Account',
+    template: 'login-alert',
+    data: {
+      name: user.name,
+      email: user.email,
+      ipAddress: loginInfo.ip || 'Unknown',
+      location: 'Location lookup not configured', // You can add IP geolocation API here
+      device: deviceInfo,
+      browser: browserInfo,
+      loginDate: formattedDate,
+      loginTime: formattedTime,
+      securityUrl: `${config.frontendUrl}/profile/security`
+    }
+  });
+};
+
 export default {
   sendEmail,
   sendWelcomeEmail,
-  sendLoginAlertEmail,
   sendPasswordResetEmail,
   sendExpenseSubmittedEmail,
   sendApprovalRequestEmail,
   sendExpenseApprovedEmail,
   sendExpenseRejectedEmail,
-  sendExpenseFinallyApprovedEmail
+  sendExpenseFinallyApprovedEmail,
+  sendLoginAlertEmail
 };

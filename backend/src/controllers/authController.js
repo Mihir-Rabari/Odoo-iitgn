@@ -111,11 +111,11 @@ export const login = async (req, res) => {
   // Generate token
   const token = generateToken(user.id);
 
-  // Send login alert email with IP and location (don't wait for it)
+  // Send login alert email (don't wait for it)
   const loginInfo = {
     ip: req.ip || req.connection.remoteAddress,
     userAgent: req.headers['user-agent'],
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
   
   sendLoginAlertEmail(user, loginInfo).catch(err => 

@@ -1,14 +1,14 @@
 import { AppError } from '../middleware/errorHandler.js';
 import * as expenseModel from '../models/expenseModel.js';
+import * as companyModel from '../models/companyModel.js';
 import * as userModel from '../models/userModel.js';
-import * as approvalModel from '../models/approvalModel.js';
-import * as notificationModel from '../models/notificationModel.js';
 import { convertCurrency } from '../services/currencyService.js';
+import { extractExpenseFromReceipt as extractWithGemini } from '../services/geminiOcrService.js';
 import { extractTextFromImage, parseExpenseFromText } from '../services/ocrService.js';
+import { logger } from '../utils/logger.js';
+import { config } from '../config/config.js';
 import { sendExpenseSubmittedEmail, sendApprovalRequestEmail } from '../utils/email.js';
 import { incrementExpenseSubmission } from '../middleware/metrics.js';
-import { logger } from '../utils/logger.js';
-import * as companyModel from '../models/companyModel.js';
 
 // Create expense
 export const createExpense = async (req, res) => {
@@ -279,27 +279,51 @@ export const getCategories = async (req, res) => {
   });
 };
 
-// OCR - Extract expense from receipt using Gemini AI
+// OCR - Extract expense from receipt
 export const extractExpenseFromReceipt = async (req, res) => {
   if (!req.file) {
     throw new AppError('No receipt image provided', 400);
   }
 
   try {
-    // Extract expense data directly from image using Gemini AI
-    const expenseData = await extractTextFromImage(req.file.path);
+    // Check if Gemini API key is available
+    const useGemini = config.geminiApiKey && config.geminiApiKey !== '';
+    
+    let expenseData;
+    let method;
+
+    if (useGemini) {
+      // Use Gemini AI for better accuracy and structured output
+      logger.info('Using Gemini AI for OCR extraction');
+      const result = await extractWithGemini(req.file.path);
+      expenseData = result.data;
+      method = 'gemini-ai';
+    } else {
+      // Fallback to Tesseract OCR
+      logger.info('Using Tesseract OCR (Gemini API key not found)');
+      const text = await extractTextFromImage(req.file.path);
+      expenseData = parseExpenseFromText(text);
+      method = 'tesseract';
+    }
 
     res.json({
       success: true,
-      message: 'Receipt processed successfully with Gemini AI',
+      message: 'Receipt processed successfully',
       data: {
-        ...expenseData,
-        receipt_url: `/uploads/${req.file.filename}`
+        amount: expenseData.amount,
+        currency: expenseData.currency,
+        date: expenseData.date,
+        merchant: expenseData.merchantName || expenseData.merchant,
+        description: expenseData.description,
+        category: expenseData.category,
+        confidence: expenseData.confidence,
+        receipt_url: `/uploads/${req.file.filename}`,
+        method: method
       }
     });
   } catch (error) {
     logger.error('OCR processing failed:', error);
-    throw new AppError('Failed to process receipt. Please try again or enter details manually.', 500);
+    throw new AppError('Failed to process receipt', 500);
   }
 };
 
