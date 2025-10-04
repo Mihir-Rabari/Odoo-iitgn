@@ -25,17 +25,19 @@ export const config = {
   uploadPath: process.env.UPLOAD_PATH || './uploads',
   
   // CORS
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   
   // Rate Limiting
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
   rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
   
-  // Email
-  smtpHost: process.env.SMTP_HOST || 'smtp.gmail.com',
-  smtpPort: parseInt(process.env.SMTP_PORT || '587', 10),
+  // Email configuration
+  smtpHost: process.env.SMTP_HOST || 'smtp.ethereal.email',
+  smtpPort: parseInt(process.env.SMTP_PORT) || 587,
   smtpSecure: process.env.SMTP_SECURE === 'true',
+  emailFrom: process.env.EMAIL_FROM || 'noreply@expe.com',
   emailUser: process.env.EMAIL_USER,
   emailPass: process.env.EMAIL_PASS,
-  emailFrom: process.env.EMAIL_FROM || 'noreply@expe.com'
+  
+  // Gemini AI configuration
+  geminiApiKey: process.env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY',
 };

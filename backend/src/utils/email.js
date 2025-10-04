@@ -96,6 +96,33 @@ export const sendWelcomeEmail = async (user, tempPassword) => {
   });
 };
 
+export const sendLoginAlertEmail = async (user, loginInfo) => {
+  // Parse user agent for device info
+  const userAgent = loginInfo.userAgent || '';
+  const isMobile = /Mobile|Android|iPhone/i.test(userAgent);
+  const browser = userAgent.match(/(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/)?.[0] || 'Unknown Browser';
+  const os = userAgent.match(/(Windows|Mac|Linux|Android|iOS)/i)?.[0] || 'Unknown OS';
+  
+  return sendEmail({
+    to: user.email,
+    subject: '🔐 New Login to Your Expe Account',
+    template: 'login-alert',
+    data: {
+      name: user.name,
+      ip: loginInfo.ip,
+      device: isMobile ? 'Mobile Device' : 'Desktop/Laptop',
+      browser: browser,
+      os: os,
+      timestamp: new Date(loginInfo.timestamp).toLocaleString('en-US', {
+        dateStyle: 'full',
+        timeStyle: 'long'
+      }),
+      dashboardUrl: `${config.frontendUrl}/dashboard`,
+      supportUrl: `${config.frontendUrl}/support`
+    }
+  });
+};
+
 export const sendPasswordResetEmail = async (user, resetToken) => {
   return sendEmail({
     to: user.email,
@@ -197,6 +224,7 @@ export const sendExpenseFinallyApprovedEmail = async (employee, expense, convert
 export default {
   sendEmail,
   sendWelcomeEmail,
+  sendLoginAlertEmail,
   sendPasswordResetEmail,
   sendExpenseSubmittedEmail,
   sendApprovalRequestEmail,

@@ -1,95 +1,79 @@
-import { createWorker } from 'tesseract.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import sharp from 'sharp';
 import { logger } from '../utils/logger.js';
+import { config } from '../config/config.js';
 import fs from 'fs';
 
-// Extract text from image using OCR
-export const extractTextFromImage = async (imagePath) => {
-  let worker;
-  try {
-    // Preprocess image for better OCR results
-    const processedImagePath = `${imagePath}_processed.jpg`;
-    await sharp(imagePath)
-      .grayscale()
-      .normalize()
-      .sharpen()
-      .toFile(processedImagePath);
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(config.geminiApiKey || process.env.GEMINI_API_KEY);
 
-    // Initialize Tesseract worker
-    worker = await createWorker('eng');
+// Extract expense details from receipt using Gemini AI
+export const extractTextFromImage = async (imagePath) => {
+  try {
+    // Read and convert image to base64
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString('base64');
+
+    // Initialize Gemini model (gemini-1.5-flash for fast processing)
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    const prompt = `
+Analyze this receipt image and extract the following information in JSON format:
+{
+  "amount": <number, total amount on receipt>,
+  "currency": <string, currency code like USD, EUR, GBP, INR>,
+  "date": <string, date in YYYY-MM-DD format>,
+  "merchantName": <string, business/merchant name>,
+  "description": <string, brief description of the expense>,
+  "items": [<array of items purchased, if visible>],
+  "category": <string, suggested expense category: Food, Transportation, Accommodation, Office Supplies, Entertainment, Miscellaneous>
+}
+
+Rules:
+- Return ONLY valid JSON, no additional text
+- If any field is not found, use null
+- Format date as YYYY-MM-DD
+- Currency should be 3-letter code (USD, EUR, etc.)
+- Amount should be the total/final amount (after tax)
+- Description should be concise (max 200 chars)
+- Be accurate and extract exact values from the receipt
+`;
+
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: base64Image
+        }
+      }
+    ]);
+
+    const response = await result.response;
+    const text = response.text();
     
-    const { data: { text } } = await worker.recognize(processedImagePath);
+    logger.info('Gemini OCR response:', text);
+
+    // Parse JSON response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('Failed to extract JSON from Gemini response');
+    }
+
+    const expenseData = JSON.parse(jsonMatch[0]);
     
-    // Clean up processed image
-    fs.unlinkSync(processedImagePath);
-    
-    await worker.terminate();
-    
-    return text;
+    return expenseData;
   } catch (error) {
-    if (worker) await worker.terminate();
-    logger.error('OCR extraction failed:', error);
+    logger.error('Gemini OCR extraction failed:', error);
     throw error;
   }
 };
 
-// Parse expense details from OCR text
+// Legacy function for backward compatibility
 export const parseExpenseFromText = (text) => {
-  try {
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    
-    const expenseData = {
-      amount: null,
-      currency: null,
-      date: null,
-      merchantName: null,
-      description: null
-    };
-
-    // Extract amount and currency
-    const amountPattern = /(\$|€|£|₹|USD|EUR|GBP|INR)?\s*(\d+[.,]\d{2})\s*(\$|€|£|₹|USD|EUR|GBP|INR)?/i;
-    for (const line of lines) {
-      const match = line.match(amountPattern);
-      if (match) {
-        expenseData.amount = parseFloat(match[2].replace(',', '.'));
-        const currencySymbol = match[1] || match[3];
-        expenseData.currency = mapCurrencySymbol(currencySymbol);
-        break;
-      }
-    }
-
-    // Extract date
-    const datePatterns = [
-      /(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/,
-      /(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})/,
-      /(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{2,4})/i
-    ];
-    
-    for (const line of lines) {
-      for (const pattern of datePatterns) {
-        const match = line.match(pattern);
-        if (match) {
-          expenseData.date = parseDate(match[1]);
-          break;
-        }
-      }
-      if (expenseData.date) break;
-    }
-
-    // Extract merchant name (usually first few lines)
-    if (lines.length > 0) {
-      expenseData.merchantName = lines[0].substring(0, 100);
-    }
-
-    // Extract description (combine relevant lines)
-    const descriptionLines = lines.slice(0, 3).join(' ');
-    expenseData.description = descriptionLines.substring(0, 200);
-
-    return expenseData;
-  } catch (error) {
-    logger.error('Failed to parse expense from text:', error);
-    throw error;
-  }
+  // This is now handled by Gemini AI directly
+  // Keeping for backward compatibility
+  return text;
 };
 
 // Map currency symbols to currency codes

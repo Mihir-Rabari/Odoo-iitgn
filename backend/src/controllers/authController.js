@@ -4,7 +4,7 @@ import { config } from '../config/config.js';
 import { AppError } from '../middleware/errorHandler.js';
 import * as userModel from '../models/userModel.js';
 import * as companyModel from '../models/companyModel.js';
-import { sendWelcomeEmail, sendPasswordResetEmail } from '../utils/email.js';
+import { sendWelcomeEmail, sendPasswordResetEmail, sendLoginAlertEmail } from '../utils/email.js';
 import { logger } from '../utils/logger.js';
 
 // Generate JWT token
@@ -111,16 +111,16 @@ export const login = async (req, res) => {
   // Generate token
   const token = generateToken(user.id);
 
-  // Send welcome email on first login (don't wait for it)
-  // Check if this is first login by checking created_at vs current time
-  const accountAge = Date.now() - new Date(user.created_at).getTime();
-  const isNewAccount = accountAge < 24 * 60 * 60 * 1000; // Less than 24 hours old
+  // Send login alert email with IP and location (don't wait for it)
+  const loginInfo = {
+    ip: req.ip || req.connection.remoteAddress,
+    userAgent: req.headers['user-agent'],
+    timestamp: new Date().toISOString(),
+  };
   
-  if (isNewAccount) {
-    sendWelcomeEmail(user).catch(err => 
-      logger.error('Failed to send welcome email on login:', err)
-    );
-  }
+  sendLoginAlertEmail(user, loginInfo).catch(err => 
+    logger.error('Failed to send login alert email:', err)
+  );
 
   res.json({
     success: true,

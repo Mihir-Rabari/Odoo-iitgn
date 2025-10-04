@@ -279,31 +279,27 @@ export const getCategories = async (req, res) => {
   });
 };
 
-// OCR - Extract expense from receipt
+// OCR - Extract expense from receipt using Gemini AI
 export const extractExpenseFromReceipt = async (req, res) => {
   if (!req.file) {
     throw new AppError('No receipt image provided', 400);
   }
 
   try {
-    // Extract text from image
-    const text = await extractTextFromImage(req.file.path);
-    
-    // Parse expense details
-    const expenseData = parseExpenseFromText(text);
+    // Extract expense data directly from image using Gemini AI
+    const expenseData = await extractTextFromImage(req.file.path);
 
     res.json({
       success: true,
-      message: 'Receipt processed successfully',
+      message: 'Receipt processed successfully with Gemini AI',
       data: {
         ...expenseData,
-        receipt_url: `/uploads/${req.file.filename}`,
-        raw_text: text
+        receipt_url: `/uploads/${req.file.filename}`
       }
     });
   } catch (error) {
     logger.error('OCR processing failed:', error);
-    throw new AppError('Failed to process receipt', 500);
+    throw new AppError('Failed to process receipt. Please try again or enter details manually.', 500);
   }
 };
 
