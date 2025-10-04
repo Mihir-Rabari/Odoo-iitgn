@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval Request</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f5f7; }
+        .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; }
+        .logo { font-size: 32px; font-weight: 700; color: #ffffff; }
+        .content { padding: 40px 30px; }
+        h1 { font-size: 24px; color: #1a202c; margin-bottom: 20px; }
+        p { margin-bottom: 15px; color: #4a5568; font-size: 15px; }
+        .button { display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 10px 5px; }
+        .button-approve { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .button-reject { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .expense-card { background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 12px; padding: 25px; margin: 25px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .expense-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
+        .expense-row:last-child { border-bottom: none; }
+        .expense-label { font-weight: 600; color: #2d3748; }
+        .expense-value { color: #4a5568; text-align: right; }
+        .amount-highlight { font-size: 28px; font-weight: 700; color: #667eea; text-align: center; margin: 20px 0; }
+        .urgent-badge { background-color: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 20px; display: inline-block; font-weight: 600; font-size: 13px; margin: 10px 0; }
+        .footer { background-color: #f7fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0; }
+        .footer p { font-size: 13px; color: #718096; margin-bottom: 10px; }
+        @media only screen and (max-width: 600px) { .content { padding: 30px 20px; } h1 { font-size: 20px; } .expense-row { flex-direction: column; } .expense-value { text-align: left; margin-top: 5px; } .button { display: block; margin: 10px 0; } }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">⚡ Expe</div>
+        </div>
+        <div class="content">
+            <h1>New Expense Approval Request 📋</h1>
+            <p>Hi {{approverName}},</p>
+            <p>You have a new expense that requires your approval from <strong>{{employeeName}}</strong>.</p>
+            
+            <center>
+                <span class="urgent-badge">⏰ Action Required</span>
+            </center>
+            
+            <div class="expense-card">
+                <div class="expense-row">
+                    <span class="expense-label">Expense ID:</span>
+                    <span class="expense-value">{{expenseId}}</span>
+                </div>
+                <div class="expense-row">
+                    <span class="expense-label">Employee:</span>
+                    <span class="expense-value">{{employeeName}}</span>
+                </div>
+                <div class="expense-row">
+                    <span class="expense-label">Description:</span>
+                    <span class="expense-value">{{description}}</span>
+                </div>
+                <div class="expense-row">
+                    <span class="expense-label">Date:</span>
+                    <span class="expense-value">{{date}}</span>
+                </div>
+                <div class="amount-highlight">{{amount}}</div>
+            </div>
+            
+            <p>Please review the expense details and take appropriate action:</p>
+            
+            <center>
+                <a href="{{approveUrl}}" class="button">Review & Take Action →</a>
+            </center>
+            
+            <p style="margin-top: 25px; font-size: 13px; color: #718096;">💡 <em>Quick tip: Click the button above to view the full expense details including receipts and make your decision.</em></p>
+        </div>
+        <div class="footer">
+            <p><strong>Expe - Expense Management System</strong></p>
+            <p>© 2025 Expe. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
