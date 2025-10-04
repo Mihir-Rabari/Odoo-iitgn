@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
@@ -11,14 +9,12 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U expe_user"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - expe-network
 
   redis:
     image: redis:7-alpine
@@ -26,59 +22,45 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data
-    command: redis-server --appendonly yes
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
-      timeout: 5s
+      timeout: 3s
       retries: 5
-    networks:
-      - expe-network
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: expe-prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    networks:
-      - expe-network
+  # Prometheus and Grafana are optional for monitoring
+  # Uncomment these if you need them later
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: expe-prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus_data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: expe-grafana
-    ports:
-      - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
-    depends_on:
-      - prometheus
-    networks:
-      - expe-network
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: expe-grafana
+  #   ports:
+  #     - "3001:3000"
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_USERS_ALLOW_SIGN_UP=false
 
 volumes:
-  postgres-data:
+  postgres_data:
     driver: local
-  redis-data:
+  redis_data:
     driver: local
-  prometheus-data:
-    driver: local
-  grafana-data:
-    driver: local
-
-networks:
-  expe-network:
-    driver: bridge
+  # prometheus_data:
+  #   driver: local
+  # grafana_data:
+  #   driver: local

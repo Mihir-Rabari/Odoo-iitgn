@@ -144,7 +144,7 @@ BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
 -- Apply trigger to all tables with updated_at
 CREATE TRIGGER update_companies_updated_at BEFORE UPDATE ON companies FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -153,11 +153,5 @@ CREATE TRIGGER update_expenses_updated_at BEFORE UPDATE ON expenses FOR EACH ROW
 CREATE TRIGGER update_approval_rules_updated_at BEFORE UPDATE ON approval_rules FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_expense_categories_updated_at BEFORE UPDATE ON expense_categories FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Insert default expense categories
-INSERT INTO expense_categories (id, company_id, name, description) VALUES
-(uuid_generate_v4(), (SELECT id FROM companies LIMIT 1), 'Food', 'Meals and food expenses'),
-(uuid_generate_v4(), (SELECT id FROM companies LIMIT 1), 'Transportation', 'Travel and transport expenses'),
-(uuid_generate_v4(), (SELECT id FROM companies LIMIT 1), 'Accommodation', 'Hotel and lodging expenses'),
-(uuid_generate_v4(), (SELECT id FROM companies LIMIT 1), 'Office Supplies', 'Stationery and office materials'),
-(uuid_generate_v4(), (SELECT id FROM companies LIMIT 1), 'Entertainment', 'Client entertainment expenses'),
-(uuid_generate_v4(), (SELECT id FROM companies LIMIT 1), 'Miscellaneous', 'Other expenses');
+-- Default expense categories will be created when a company signs up
+-- See backend/src/controllers/authController.js for implementation
