@@ -2,6 +2,8 @@ import { AppError } from '../middleware/errorHandler.js';
 import * as expenseModel from '../models/expenseModel.js';
 import * as companyModel from '../models/companyModel.js';
 import * as userModel from '../models/userModel.js';
+import * as approvalModel from '../models/approvalModel.js';
+import * as notificationModel from '../models/notificationModel.js';
 import { convertCurrency } from '../services/currencyService.js';
 import { extractExpenseFromReceipt as extractWithGemini } from '../services/geminiOcrService.js';
 import { extractTextFromImage, parseExpenseFromText } from '../services/ocrService.js';
