@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Expe - Expense Reimbursement System
 
 A comprehensive expense management system with multi-level approval workflows, OCR receipt scanning, and conditional approval rules.
@@ -146,3 +147,6 @@ NODE_ENV=development
 ## License
 
 MIT
+=======
+# Odoo-iitgn
+>>>>>>> 41accacf1d134c227f9210372d136b999876d694
