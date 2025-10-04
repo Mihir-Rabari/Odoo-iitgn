@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     environment:
-      # Fallbacks if not in .env
+      # Fallbacks if not in .env 
       - PORT=${PORT:-3000}
       - UPLOAD_PATH=${UPLOAD_PATH:-/app/uploads}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8080}

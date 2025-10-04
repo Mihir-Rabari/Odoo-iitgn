@@ -1,33 +1,7 @@
-services:
-  backend:
-    build:
-      context: ./backend
-    container_name: expe-backend
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - DATABASE_URL=postgresql://expe_user:expe_password@postgres:5432/expe_db
-      - REDIS_URL=redis://redis:6379
-      - FRONTEND_URL=http://localhost:8080
-      - UPLOAD_PATH=/app/uploads
-    depends_on:
-      - postgres
-      - redis
-    volumes:
-      - uploads_data:/app/uploads
-    ports:
-      - "3000:3000"
+# Simple Docker Compose for Postgres and Redis only
+# Run frontend and backend with PM2 on the host
 
-  frontend:
-    build:
-      context: ./frontend
-      args:
-        VITE_API_URL: /api
-    container_name: expe-frontend
-    depends_on:
-      - backend
-    ports:
-      - "8080:80"
+services:
   postgres:
     image: postgres:15-alpine
     container_name: expe-postgres
@@ -45,16 +19,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Postgres Prometheus exporter
-  postgres_exporter:
-    image: prometheuscommunity/postgres-exporter:latest
-    container_name: expe-postgres-exporter
-    depends_on:
-      - postgres
-    environment:
-      - DATA_SOURCE_NAME=postgresql://expe_user:expe_password@postgres:5432/expe_db?sslmode=disable
-    ports:
-      - "9187:9187"
 
   redis:
     image: redis:7-alpine
@@ -69,54 +33,7 @@ services:
       timeout: 3s
       retries: 5
 
-  # Redis Prometheus exporter
-  redis_exporter:
-    image: oliver006/redis_exporter:latest
-    container_name: expe-redis-exporter
-    depends_on:
-      - redis
-    command:
-      - '--redis.addr=redis://redis:6379'
-    ports:
-      - "9121:9121"
-
-  # Prometheus for scraping app metrics
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: expe-prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-
-  # Grafana for visualization
-  grafana:
-    image: grafana/grafana:latest
-    container_name: expe-grafana
-    depends_on:
-      - prometheus
-    ports:
-      - "3001:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
 
 volumes:
   postgres_data:
-    driver: local
   redis_data:
-    driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
-  uploads_data:
-    driver: local
