@@ -10,18 +10,8 @@ const __dirname = path.dirname(__filename);
 
 // Create transporter
 const createTransporter = () => {
-  if (config.nodeEnv === 'development') {
-    // Use ethereal for development
-    return nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      auth: {
-        user: config.emailUser || 'ethereal.user@ethereal.email',
-        pass: config.emailPass || 'ethereal.password'
-      }
-    });
-  } else {
-    // Use real SMTP for production
+  // Always use configured SMTP if credentials are provided
+  if (config.emailUser && config.emailPass) {
     return nodemailer.createTransport({
       host: config.smtpHost,
       port: config.smtpPort,
@@ -29,6 +19,17 @@ const createTransporter = () => {
       auth: {
         user: config.emailUser,
         pass: config.emailPass
+      }
+    });
+  } else {
+    // Fallback to ethereal for development/testing
+    logger.warn('No email credentials configured, using ethereal.email (fake SMTP)');
+    return nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      auth: {
+        user: 'ethereal.user@ethereal.email',
+        pass: 'ethereal.password'
       }
     });
   }
