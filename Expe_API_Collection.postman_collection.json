@@ -1,0 +1,701 @@
+{
+  "info": {
+    "name": "Expe - Expense Management API",
+    "description": "Complete API collection for Expe expense reimbursement system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Signup (Create Company & Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"token\", jsonData.data.token);",
+                  "    pm.collectionVariables.set(\"token\", jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@company.com\",\n  \"password\": \"Password123!\",\n  \"companyName\": \"Acme Corp\",\n  \"country\": \"United States\",\n  \"currency\": \"USD\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "signup"]
+            },
+            "description": "Create a new company and admin user"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"token\", jsonData.data.token);",
+                  "    pm.collectionVariables.set(\"token\", jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@company.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get currently authenticated user details"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@company.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            },
+            "description": "Request password reset email"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Get all users in the company (Admin only)"
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Manager\",\n  \"email\": \"jane@company.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"manager\",\n  \"isManagerApprover\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Create a new user (Admin only)"
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user-uuid-here"
+                }
+              ]
+            },
+            "description": "Get user details by ID"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Updated\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user-uuid-here"
+                }
+              ]
+            },
+            "description": "Update user details (Admin only)"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user-uuid-here"
+                }
+              ]
+            },
+            "description": "Delete user (Admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "Get All Expenses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/expenses?status=pending_approval",
+              "host": ["{{baseUrl}}"],
+              "path": ["expenses"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending_approval",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get expenses (filtered by role)"
+          }
+        },
+        {
+          "name": "Create Expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Client dinner at Olive Garden\",\n  \"categoryName\": \"Food\",\n  \"amount\": 125.50,\n  \"currency\": \"USD\",\n  \"expenseDate\": \"2025-10-03\",\n  \"paidBy\": \"Credit Card\",\n  \"remarks\": \"Discussed Q4 strategy with client\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/expenses",
+              "host": ["{{baseUrl}}"],
+              "path": ["expenses"]
+            },
+            "description": "Create a new expense"
+          }
+        },
+        {
+          "name": "Get Expense by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/expenses/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["expenses", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "expense-uuid-here"
+                }
+              ]
+            },
+            "description": "Get expense details with approval history"
+          }
+        },
+        {
+          "name": "Update Expense",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated client dinner\",\n  \"amount\": 135.75\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/expenses/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["expenses", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "expense-uuid-here"
+                }
+              ]
+            },
+            "description": "Update expense (draft only)"
+          }
+        },
+        {
+          "name": "Submit Expense for Approval",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/expenses/:id/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["expenses", ":id", "submit"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "expense-uuid-here"
+                }
+              ]
+            },
+            "description": "Submit expense for approval workflow"
+          }
+        },
+        {
+          "name": "OCR - Extract from Receipt",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "receipt",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/expenses/ocr",
+              "host": ["{{baseUrl}}"],
+              "path": ["expenses", "ocr"]
+            },
+            "description": "Upload receipt and extract expense data using OCR"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approvals",
+      "item": [
+        {
+          "name": "Get Pending Approvals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/approvals/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals", "pending"]
+            },
+            "description": "Get expenses pending approval for current user"
+          }
+        },
+        {
+          "name": "Approve Expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comments\": \"Approved - looks reasonable\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/approvals/expenses/:id/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals", "expenses", ":id", "approve"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "expense-uuid-here"
+                }
+              ]
+            },
+            "description": "Approve an expense"
+          }
+        },
+        {
+          "name": "Reject Expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comments\": \"Please provide itemized receipt\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/approvals/expenses/:id/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals", "expenses", ":id", "reject"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "expense-uuid-here"
+                }
+              ]
+            },
+            "description": "Reject an expense"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approval Rules",
+      "item": [
+        {
+          "name": "Get All Approval Rules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/approval-rules",
+              "host": ["{{baseUrl}}"],
+              "path": ["approval-rules"]
+            },
+            "description": "Get all approval rules (Admin only)"
+          }
+        },
+        {
+          "name": "Create Sequential Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Standard Approval Flow\",\n  \"description\": \"Manager then Finance approval\",\n  \"useApproverSequence\": true,\n  \"approvers\": [\n    {\n      \"userId\": \"manager-uuid\",\n      \"sequenceOrder\": 1,\n      \"isRequired\": true\n    },\n    {\n      \"userId\": \"finance-uuid\",\n      \"sequenceOrder\": 2,\n      \"isRequired\": true\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/approval-rules",
+              "host": ["{{baseUrl}}"],
+              "path": ["approval-rules"]
+            },
+            "description": "Create sequential approval rule (Admin only)"
+          }
+        },
+        {
+          "name": "Create Percentage Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Committee Approval\",\n  \"description\": \"60% of committee must approve\",\n  \"useApproverSequence\": false,\n  \"minApprovalPercentage\": 60.00,\n  \"approvers\": [\n    {\"userId\": \"approver1-uuid\", \"sequenceOrder\": 1},\n    {\"userId\": \"approver2-uuid\", \"sequenceOrder\": 2},\n    {\"userId\": \"approver3-uuid\", \"sequenceOrder\": 3},\n    {\"userId\": \"approver4-uuid\", \"sequenceOrder\": 4},\n    {\"userId\": \"approver5-uuid\", \"sequenceOrder\": 5}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/approval-rules",
+              "host": ["{{baseUrl}}"],
+              "path": ["approval-rules"]
+            },
+            "description": "Create percentage-based approval rule"
+          }
+        },
+        {
+          "name": "Create Specific Approver Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"CFO Auto-Approve\",\n  \"description\": \"CFO can auto-approve any expense\",\n  \"hasSpecificApprover\": true,\n  \"specificApproverId\": \"cfo-uuid\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/approval-rules",
+              "host": ["{{baseUrl}}"],
+              "path": ["approval-rules"]
+            },
+            "description": "Create specific approver bypass rule"
+          }
+        },
+        {
+          "name": "Update Approval Rule",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Rule Name\",\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/approval-rules/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["approval-rules", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "rule-uuid-here"
+                }
+              ]
+            },
+            "description": "Update approval rule (Admin only)"
+          }
+        },
+        {
+          "name": "Delete Approval Rule",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/approval-rules/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["approval-rules", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "rule-uuid-here"
+                }
+              ]
+            },
+            "description": "Delete approval rule (Admin only)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?unread=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                {
+                  "key": "unread",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get notifications for current user"
+          }
+        },
+        {
+          "name": "Mark as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:id/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", ":id", "read"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "notification-uuid-here"
+                }
+              ]
+            },
+            "description": "Mark notification as read"
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "read-all"]
+            },
+            "description": "Mark all notifications as read"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Currency",
+      "item": [
+        {
+          "name": "Get All Countries",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/currency/countries",
+              "host": ["{{baseUrl}}"],
+              "path": ["currency", "countries"]
+            },
+            "description": "Get list of all countries with currencies"
+          }
+        },
+        {
+          "name": "Convert Currency",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/currency/convert?from=EUR&to=USD&amount=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["currency", "convert"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "EUR"
+                },
+                {
+                  "key": "to",
+                  "value": "USD"
+                },
+                {
+                  "key": "amount",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Convert amount from one currency to another"
+          }
+        }
+      ]
+    }
+  ]
+}
