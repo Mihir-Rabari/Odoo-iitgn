@@ -73,10 +73,18 @@ export const submitExpense = async (req, res) => {
   // Check if manager approval is required
   if (employee.manager_id) {
     nextApprover = await userModel.findUserById(employee.manager_id);
-    // Only set to pending_approval if manager exists and can approve
-    if (nextApprover && (nextApprover.role === 'manager' || nextApprover.role === 'admin')) {
-      newStatus = 'pending_approval';
+  } else {
+    // If no manager assigned, default to admin
+    const admins = await userModel.getUsersByCompany(req.user.company_id, { role: 'admin' });
+    if (admins.length > 0) {
+      nextApprover = admins[0];
+      logger.info(`No manager assigned to ${employee.name}, defaulting to admin: ${nextApprover.name}`);
     }
+  }
+
+  // Only set to pending_approval if approver exists and can approve
+  if (nextApprover && (nextApprover.role === 'manager' || nextApprover.role === 'admin')) {
+    newStatus = 'pending_approval';
   }
 
   // Update expense status
@@ -104,7 +112,7 @@ export const submitExpense = async (req, res) => {
       id,
       'approval_request',
       'New Expense Approval Request',
-      `${employee.name} submitted an expense for ${expense.currency} ${expense.amount}`
+      `${employee.name} submitted an expense for ${updatedExpense.currency} ${updatedExpense.amount}`
     );
   }
 
