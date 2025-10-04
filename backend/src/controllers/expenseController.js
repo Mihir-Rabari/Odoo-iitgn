@@ -71,9 +71,12 @@ export const submitExpense = async (req, res) => {
   let newStatus = 'submitted';
 
   // Check if manager approval is required
-  if (employee.manager_id && employee.is_manager_approver) {
+  if (employee.manager_id) {
     nextApprover = await userModel.findUserById(employee.manager_id);
-    newStatus = 'pending_approval';
+    // Only set to pending_approval if manager exists and can approve
+    if (nextApprover && (nextApprover.role === 'manager' || nextApprover.role === 'admin')) {
+      newStatus = 'pending_approval';
+    }
   }
 
   // Update expense status

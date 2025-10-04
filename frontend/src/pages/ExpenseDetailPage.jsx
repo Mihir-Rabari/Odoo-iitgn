@@ -24,9 +24,11 @@ const ExpenseDetailPage = () => {
   const fetchExpenseDetails = async () => {
     try {
       const response = await api.get(`/expenses/${id}`);
-      setExpense(response.data.data.expense);
-      setApprovalHistory(response.data.data.approvalHistory || []);
+      const data = response.data.data;
+      setExpense(data);
+      setApprovalHistory(data.approval_history || []);
     } catch (error) {
+      console.error('Fetch expense error:', error);
       toast.error('Failed to fetch expense details');
       navigate('/dashboard/expenses');
     } finally {
