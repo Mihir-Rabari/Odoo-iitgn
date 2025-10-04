@@ -36,7 +36,7 @@ const ApprovalRulesPage = () => {
 
   const fetchRules = async () => {
     try {
-      const response = await api.get('/approval-rules');
+      const response = await api.get('/approvals/rules');
       setRules(response.data.data);
     } catch (error) {
       toast.error('Failed to fetch approval rules');
@@ -115,10 +115,10 @@ const ApprovalRulesPage = () => {
       };
 
       if (editingRule) {
-        await api.patch(`/approval-rules/${editingRule.id}`, payload);
+        await api.patch(`/approvals/rules/${editingRule.id}`, payload);
         toast.success('Approval rule updated successfully');
       } else {
-        await api.post('/approval-rules', payload);
+        await api.post('/approvals/rules', payload);
         toast.success('Approval rule created successfully');
       }
       setDialogOpen(false);
@@ -134,7 +134,7 @@ const ApprovalRulesPage = () => {
     if (!confirm('Are you sure you want to delete this approval rule?')) return;
 
     try {
-      await api.delete(`/approval-rules/${ruleId}`);
+      await api.delete(`/approvals/rules/${ruleId}`);
       toast.success('Approval rule deleted successfully');
       fetchRules();
     } catch (error) {

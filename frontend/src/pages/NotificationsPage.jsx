@@ -40,7 +40,7 @@ const NotificationsPage = () => {
 
   const markAllAsRead = async () => {
     try {
-      await api.patch('/notifications/read-all');
+      await api.post('/notifications/mark-all-read');
       setNotifications(notifications.map(n => ({ ...n, is_read: true })));
       toast.success('All notifications marked as read');
     } catch (error) {
