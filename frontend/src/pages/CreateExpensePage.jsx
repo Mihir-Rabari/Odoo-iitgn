@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,11 +17,11 @@ import api from '@/lib/axios';
 
 const expenseSchema = z.object({
   description: z.string().min(5, 'Description must be at least 5 characters'),
-  categoryName: z.string().min(1, 'Category is required'),
+  category_id: z.string().min(1, 'Category is required'),
   amount: z.string().min(1, 'Amount is required'),
   currency: z.string().length(3, 'Currency must be 3 characters'),
-  expenseDate: z.string().min(1, 'Date is required'),
-  paidBy: z.string().optional(),
+  expense_date: z.string().min(1, 'Date is required'),
+  paid_by: z.string().optional(),
   remarks: z.string().optional(),
 });
 
@@ -31,6 +31,7 @@ const CreateExpensePage = () => {
   const [loading, setLoading] = useState(false);
   const [ocrLoading, setOcrLoading] = useState(false);
   const [receiptFile, setReceiptFile] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   const {
     register,
@@ -41,9 +42,22 @@ const CreateExpensePage = () => {
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       currency: company?.currency || 'USD',
-      expenseDate: new Date().toISOString().split('T')[0],
+      expense_date: new Date().toISOString().split('T')[0],
     },
   });
+
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get('/expenses/categories');
+        setCategories(response.data.data || []);
+      } catch (error) {
+        toast.error('Failed to load categories');
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleOCRScan = async (file) => {
     if (!file) return;
@@ -61,7 +75,7 @@ const CreateExpensePage = () => {
       
       // Auto-fill form fields from OCR
       if (ocrData.amount) setValue('amount', ocrData.amount.toString());
-      if (ocrData.date) setValue('expenseDate', ocrData.date);
+      if (ocrData.date) setValue('expense_date', ocrData.date);
       if (ocrData.merchant) setValue('description', ocrData.merchant);
       if (ocrData.currency) setValue('currency', ocrData.currency);
 
@@ -169,22 +183,21 @@ const CreateExpensePage = () => {
 
             {/* Category */}
             <div>
-              <Label htmlFor="categoryName">Category *</Label>
+              <Label htmlFor="category_id">Category *</Label>
               <Select
-                id="categoryName"
-                {...register('categoryName')}
-                className={errors.categoryName ? 'border-red-500' : ''}
+                id="category_id"
+                {...register('category_id')}
+                className={errors.category_id ? 'border-red-500' : ''}
               >
                 <option value="">Select category</option>
-                <option value="Food">Food</option>
-                <option value="Transportation">Transportation</option>
-                <option value="Accommodation">Accommodation</option>
-                <option value="Office Supplies">Office Supplies</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="Miscellaneous">Miscellaneous</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </Select>
-              {errors.categoryName && (
-                <p className="text-sm text-red-500 mt-1">{errors.categoryName.message}</p>
+              {errors.category_id && (
+                <p className="text-sm text-red-500 mt-1">{errors.category_id.message}</p>
               )}
             </div>
 
@@ -227,20 +240,20 @@ const CreateExpensePage = () => {
             {/* Date and Paid By */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="expenseDate">Expense Date *</Label>
+                <Label htmlFor="expense_date">Expense Date *</Label>
                 <Input
-                  id="expenseDate"
+                  id="expense_date"
                   type="date"
-                  {...register('expenseDate')}
-                  className={errors.expenseDate ? 'border-red-500' : ''}
+                  {...register('expense_date')}
+                  className={errors.expense_date ? 'border-red-500' : ''}
                 />
-                {errors.expenseDate && (
-                  <p className="text-sm text-red-500 mt-1">{errors.expenseDate.message}</p>
+                {errors.expense_date && (
+                  <p className="text-sm text-red-500 mt-1">{errors.expense_date.message}</p>
                 )}
               </div>
               <div>
-                <Label htmlFor="paidBy">Paid By</Label>
-                <Select id="paidBy" {...register('paidBy')}>
+                <Label htmlFor="paid_by">Paid By</Label>
+                <Select id="paid_by" {...register('paid_by')}>
                   <option value="">Select payment method</option>
                   <option value="Cash">Cash</option>
                   <option value="Credit Card">Credit Card</option>
